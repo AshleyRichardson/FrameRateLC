@@ -1,23 +1,77 @@
+using DM.MovieApi;
+using DM.MovieApi.MovieDb.Movies;
 using LaunchCodeCapstone.Data;
+using LaunchCodeCapstone.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Xml.Linq;
 using LaunchCodeCapstone.Services;
+using LaunchCodeCapstone.Repositories;
+
+//CORS
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+/////
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
 
+
+//CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(MyAllowSpecificOrigins,
+                          policy =>
+                          {
+                              policy.AllowAnyOrigin()
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                          });
+});
+/////
+
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<MovieDbContext>(options =>
+    options.UseSqlServer(connectionString));
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+//this is for the movie application db context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+//this is for the identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<MovieDbContext>();
 builder.Services.AddControllersWithViews();
+
+//this is for the movie review db context
+builder.Services.AddDbContext<ReviewDbContext>(options =>
+    options.UseSqlServer(connectionString));
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+////this is for the watchlist db context
+builder.Services.AddDbContext<WatchListDbContext>(options =>
+   options.UseSqlServer(connectionString));
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+
+//this is for the review repository (interface, it's implementation)
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+//this is for the image repository (uploading images in a review)
+builder.Services.AddScoped<IImageRepository, CloudinaryImagesRepository>();
+//likes repository
+builder.Services.AddScoped<ILikeReviewRepository, LikeReviewRepository>();
+//comments repository
+builder.Services.AddScoped<IReviewCommentsRepository, ReviewCommentsRepository>();
+//users repository
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+//watchlist repository
+builder.Services.AddScoped<IWatchListRepository, WatchListRepository>();
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
@@ -61,15 +115,24 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 
-services.AddAuthentication().AddGoogle(googleOptions =>
-{
-    googleOptions.ClientId = configuration["Authentication:Google:ClientId"];
-    googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"];
-});
+//services.AddAuthentication().AddGoogle(googleOptions =>
+//{
+//    googleOptions.ClientId = configuration["Authentication:Google:ClientId"];
+//    googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+//});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+string bearerToken = ("eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmZjkyOWMxY2Q5MTgzOWNkYWU5MzZhNjEzMmNmNGUyNyIsInN1YiI6IjY1YWMwMjliYWQ1OWI1MDBlYjc4NTFkYSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.TKw26QnxggH6qX2MFMraVlrRetVSCODmGMBX_L6WTJw");
+
+MovieDbFactory.RegisterSettings(bearerToken);
+
+// as the factory returns a Lazy<T> instance, just grab the Value from the Lazy<T>
+// and assign to a local variable.
+IApiMovieRequest movieApi = MovieDbFactory.Create<IApiMovieRequest>().Value;
+
+// Configure the HTTP request pipeline.w
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -85,6 +148,11 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+//CORS
+app.UseCors(MyAllowSpecificOrigins);
+/////
+
 
 app.UseAuthentication();
 app.UseAuthorization();
