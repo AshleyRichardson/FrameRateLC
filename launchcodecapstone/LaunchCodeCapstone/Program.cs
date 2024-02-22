@@ -73,8 +73,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 //watchlist repository
 builder.Services.AddScoped<IWatchListRepository, WatchListRepository>();
 
-builder.Services.AddTransient<IEmailSender, EmailSender>();
-builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
+//builder.Services.AddTransient<IEmailSender, EmailSender>();
+//builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 
 //this sets the inactivity timeout to 2 days
 builder.Services.ConfigureApplicationCookie(o => {

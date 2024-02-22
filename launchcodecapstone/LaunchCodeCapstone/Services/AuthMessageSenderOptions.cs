@@ -1,8 +1,8 @@
-﻿namespace LaunchCodeCapstone.Services
-{
-    public class AuthMessageSenderOptions
-    {
-        public string? SendGridKey { get; set; }
+﻿//namespace LaunchCodeCapstone.Services
+//{
+//    public class AuthMessageSenderOptions
+//    {
+//        public string? SendGridKey { get; set; }
 
-    }
-}
+//    }
+//}

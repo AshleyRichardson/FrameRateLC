@@ -32,7 +32,7 @@ below uses BeginForm library to route on submit the controller and action method
                     <img src="@movie.PosterPath" style="display: block; width: 300px;" />
                    </td>
                    <td>
-                @using (Html.BeginForm("AddBySearch", "Movie", new { id = @movie.Title }, FormMethod.Post))
+                @using (Html.BeginForm("AddBySearch", "Movie", FormMethod.Post))
                 {
                     <button type="submit" data-bs-togle="modal" data-bs-target="#IdModal" class="btn btn-danger" data-toggle="tooltip" data-placement="right" title="Add" id="@movie.Title">
                         <i class="fas fa-trash"></i>
