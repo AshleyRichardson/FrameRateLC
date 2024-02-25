@@ -69,20 +69,24 @@ namespace LaunchCodeCapstone.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddBySearch(AddToWatchListVM addToWatchListVM)
+        public async Task<IActionResult> SearchAPI(AddToWatchListVM addToWatchListVM)
         {
             var movieApi = MovieDbFactory.Create<IApiMovieRequest>().Value;
-            ApiSearchResponse<MovieInfo> response = await movieApi.SearchByTitleAsync((addToWatchListVM.MovieTitle).ToString());
+            ApiSearchResponse<MovieInfo> response = await movieApi.SearchByTitleAsync(addToWatchListVM.MovieTitle);
 
-            List<MovieInfo> movieList = new List<MovieInfo>();
-
-            var model = new WatchList
+            List<MovieInfo> watchList = new List<MovieInfo>();
+            foreach(MovieInfo movie in  response.Results)
             {
-                MovieTitle = addToWatchListVM.MovieTitle,
-                UserId = userManager.GetUserId(User)
-            };
-            await watchListRepository.AddAsync(model);
-            return RedirectToAction("List"); 
+                watchList.Add(movie);
+            }
+            return View(watchList);
+            //var model = new WatchList
+            //{
+            //    MovieTitle = addToWatchListVM.MovieTitle,
+            //    UserId = userManager.GetUserId(User)
+            //};
+            //await watchListRepository.AddAsync(model);
+
         }
 
 
